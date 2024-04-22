@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from median.app.database import (
@@ -7,6 +8,15 @@ from median.app.database import (
 from median.app.generate_quizz import quiz
 
 app = FastAPI( )
+
+# Set up CORS
+app.add_middleware(
+        CORSMiddleware ,
+        allow_origins=[ "*" ] ,
+        allow_credentials=True ,
+        allow_methods=[ "*" ] ,
+        allow_headers=[ "*" ] ,
+)
 
 
 class Flashcard(BaseModel) :
@@ -33,3 +43,8 @@ async def get_flashcards( ) -> list[ str ] :
 async def generate_quiz(quiz_content: QuizContent) :
     quizzes , topics = quiz(quiz_content.content)
     return { "quizzes" : quizzes , "topics" : topics }
+
+
+@app.get("/greet")
+def greet( ) :
+    return { "greeting" : "Hello from FastAPI!" }
