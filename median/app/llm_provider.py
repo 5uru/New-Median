@@ -55,14 +55,14 @@ def generation(content: str, language: str, followings: str):
     model, tokenizer = load_model()
 
     model_config = {
-            "verbose": True,
-            "temp": 0.7,
-            "max_tokens": 4000,
-            "repetition_penalty": 1.1,
+        "verbose": True,
+        "temp": 0.7,
+        "max_tokens": 4000,
+        "repetition_penalty": 1.1,
     }
 
     instruction = prompt.format(
-            followings=followings.upper(), language=language.upper(), content=content
+        followings=followings.upper(), language=language.upper(), content=content
     )
     median_logger.info(f"Generating quiz for: {content} ")
     return run_inference(model, tokenizer, instruction, model_config)

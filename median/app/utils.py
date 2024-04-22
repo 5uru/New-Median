@@ -15,15 +15,15 @@ from transformers import AutoTokenizer
 # Constants
 EMBEDDING_MODEL_NAME = "thenlper/gte-small"
 MARKDOWN_SEPARATORS = [
-        "\n#{1,6} ",
-        "```\n",
-        "\n\\*\\*\\*+\n",
-        "\n---+\n",
-        "\n___+\n",
-        "\n\n",
-        "\n",
-        " ",
-        "",
+    "\n#{1,6} ",
+    "```\n",
+    "\n\\*\\*\\*+\n",
+    "\n---+\n",
+    "\n___+\n",
+    "\n\n",
+    "\n",
+    " ",
+    "",
 ]
 SPACY_MODELS = {}
 
@@ -38,26 +38,26 @@ def setup_logging():
     """
 
     logging.basicConfig(
-            format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
-            datefmt="%Y-%m-%d:%H:%M:%S",
-            level=logging.INFO,
+        format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
+        datefmt="%Y-%m-%d:%H:%M:%S",
+        level=logging.INFO,
     )
     script_dir = os.path.dirname(os.path.abspath(__file__))
     now = datetime.datetime.now()
     log_folder = os.path.join(script_dir, "median_logs")
     os.makedirs(log_folder, exist_ok=True)
     log_file_path = os.path.join(
-            log_folder,
-            f"median_{now.strftime('%Y-%m-%d_%H-%M-%S')}.log",
+        log_folder,
+        f"median_{now.strftime('%Y-%m-%d_%H-%M-%S')}.log",
     )
     file_handler = RotatingFileHandler(
-            log_file_path, maxBytes=5 * 1024 * 1024, backupCount=5
+        log_file_path, maxBytes=5 * 1024 * 1024, backupCount=5
     )
     file_handler.setLevel(logging.INFO)
 
     formatter = logging.Formatter(
-            "%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
-            datefmt="%Y-%m-%d:%H:%M:%S",
+        "%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
+        datefmt="%Y-%m-%d:%H:%M:%S",
     )
     file_handler.setFormatter(formatter)
 
@@ -87,7 +87,7 @@ def load_spacy_model(spacy_model: str) -> Language:
             median_logger.info(f"Loaded SpaCy model: {spacy_model}")
         except Exception as e:
             median_logger.error(
-                    f"Error loading SpaCy model: {e}. Attempting to download."
+                f"Error loading SpaCy model: {e}. Attempting to download."
             )
             spacy.cli.download(spacy_model)
             SPACY_MODELS[spacy_model] = spacy.load(spacy_model)
@@ -109,7 +109,7 @@ def language_detection(content: str) -> str:
 
 
 def get_topics(
-        content: str, language: str, spacy_model: Optional[str] = "en_core_web_sm"
+    content: str, language: str, spacy_model: Optional[str] = "en_core_web_sm"
 ) -> List[str]:
     """
     Extracts key topics from the provided content using the specified language and SpaCy model.
@@ -126,7 +126,7 @@ def get_topics(
     nlp = load_spacy_model(spacy_model)
     extractor = TopicRank()
     extractor.load_document(
-            content, language=language, spacy_model=nlp, normalization="stemming"
+        content, language=language, spacy_model=nlp, normalization="stemming"
     )
     extractor.candidate_selection()
     extractor.candidate_weighting()
@@ -136,9 +136,9 @@ def get_topics(
 
 
 def split_documents(
-        chunk_size: int,
-        knowledge_base: List[LangchainDocument],
-        tokenizer_name: Optional[str] = EMBEDDING_MODEL_NAME,
+    chunk_size: int,
+    knowledge_base: List[LangchainDocument],
+    tokenizer_name: Optional[str] = EMBEDDING_MODEL_NAME,
 ) -> List[LangchainDocument]:
     """
     Splits and deduplicates documents based on the specified chunk size and tokenizer.
@@ -153,23 +153,23 @@ def split_documents(
     """
 
     text_splitter = RecursiveCharacterTextSplitter.from_huggingface_tokenizer(
-            AutoTokenizer.from_pretrained(tokenizer_name),
-            chunk_size=chunk_size,
-            chunk_overlap=chunk_size // 10,
-            add_start_index=True,
-            strip_whitespace=True,
-            separators=MARKDOWN_SEPARATORS,
+        AutoTokenizer.from_pretrained(tokenizer_name),
+        chunk_size=chunk_size,
+        chunk_overlap=chunk_size // 10,
+        add_start_index=True,
+        strip_whitespace=True,
+        separators=MARKDOWN_SEPARATORS,
     )
 
     # Split and deduplicate documents
     docs_processed = text_splitter.split_documents(knowledge_base)
     unique_texts = set()
     docs_unique = [
-            doc
-            for doc in docs_processed
-            if not (doc.page_content in unique_texts or unique_texts.add(doc.page_content))
+        doc
+        for doc in docs_processed
+        if not (doc.page_content in unique_texts or unique_texts.add(doc.page_content))
     ]
     median_logger.info(
-            f"Processed and deduplicated documents. Total unique chunks: {len(docs_unique)}."
+        f"Processed and deduplicated documents. Total unique chunks: {len(docs_unique)}."
     )
     return docs_unique
